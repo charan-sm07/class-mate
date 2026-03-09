@@ -1,0 +1,1 @@
+ALTER TABLE public.attendance_records ADD COLUMN latitude double precision, ADD COLUMN longitude double precision;

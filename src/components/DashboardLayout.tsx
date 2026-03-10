@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '@/components/NotificationBell';
+import DemoBanner from '@/components/DemoBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDemo } from '@/contexts/DemoContext';
 import { useTheme } from '@/hooks/use-theme';

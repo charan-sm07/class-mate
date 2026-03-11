@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   GraduationCap, QrCode, BarChart3, Shield, ArrowRight,
   MapPin, Bell, Users, CheckCircle2, Smartphone, Clock,
-  Zap, Star, ChevronRight, Play
+  Zap, Star, ChevronRight, Play, Github, Twitter, Linkedin,
 } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring, animate } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -21,11 +23,36 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
+// Animated counter component
+const AnimatedCounter = ({ value, suffix = '' }: { value: string; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+  const prefix = value.match(/^[^0-9.]*/)?.[0] || '';
+
+  useEffect(() => {
+    if (!isInView || !ref.current) return;
+    const controls = animate(0, numericValue, {
+      duration: 1.5,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        if (ref.current) {
+          const formatted = numericValue % 1 !== 0 ? v.toFixed(1) : Math.round(v).toString();
+          ref.current.textContent = `${prefix}${formatted}${suffix}`;
+        }
+      },
+    });
+    return controls.stop;
+  }, [isInView, numericValue, prefix, suffix]);
+
+  return <span ref={ref}>{value}{suffix}</span>;
+};
+
 const stats = [
-  { value: '99.9%', label: 'Uptime', icon: Zap },
-  { value: '<2s', label: 'QR Scan Speed', icon: QrCode },
-  { value: '200m', label: 'Geofence Radius', icon: MapPin },
-  { value: '3', label: 'Role Dashboards', icon: Users },
+  { value: '99.9', suffix: '%', label: 'Uptime', icon: Zap },
+  { value: '<2', suffix: 's', label: 'QR Scan Speed', icon: QrCode },
+  { value: '200', suffix: 'm', label: 'Geofence Radius', icon: MapPin },
+  { value: '3', suffix: '', label: 'Role Dashboards', icon: Users },
 ];
 
 const features = [
@@ -45,9 +72,16 @@ const howItWorks = [
 ];
 
 const testimonials = [
-  { name: 'Dr. Priya Sharma', role: 'HOD, Computer Science', text: 'AttendEase reduced proxy attendance by 95%. The QR + GPS combo is brilliant.' },
-  { name: 'Rahul M.', role: 'Final Year Student', text: 'No more manual roll calls. Just scan and go — it saves so much time every class.' },
-  { name: 'Prof. Arun Kumar', role: 'Faculty, ECE Dept', text: 'The analytics dashboard gives me instant insights. I can track trends in real-time.' },
+  { name: 'Dr. Priya Sharma', role: 'HOD, Computer Science', text: 'AttendEase reduced proxy attendance by 95%. The QR + GPS combo is brilliant.', initials: 'PS', color: 'gradient-primary' },
+  { name: 'Rahul M.', role: 'Final Year Student', text: 'No more manual roll calls. Just scan and go — it saves so much time every class.', initials: 'RM', color: 'gradient-secondary' },
+  { name: 'Prof. Arun Kumar', role: 'Faculty, ECE Dept', text: 'The analytics dashboard gives me instant insights. I can track trends in real-time.', initials: 'AK', color: 'gradient-accent' },
+  { name: 'Dr. Meera Patel', role: 'Dean of Students', text: 'Managing attendance across departments has never been easier. The admin dashboard is a game-changer.', initials: 'MP', color: 'gradient-primary' },
+  { name: 'Sneha R.', role: '2nd Year, IT Dept', text: 'The leave request system is so smooth. I can track my attendance percentage anytime.', initials: 'SR', color: 'gradient-secondary' },
+  { name: 'Prof. Vikram Singh', role: 'Faculty, Mech Dept', text: 'Session management makes it effortless to handle multiple classes in a day.', initials: 'VS', color: 'gradient-accent' },
+];
+
+const trustedBy = [
+  'IIT Delhi', 'NIT Trichy', 'BITS Pilani', 'VIT Vellore', 'SRM University',
 ];
 
 const Index = () => {
@@ -56,9 +90,10 @@ const Index = () => {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const previewY = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background overflow-hidden scroll-smooth">
       {/* Floating Navbar */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -104,11 +139,10 @@ const Index = () => {
             transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute bottom-0 right-1/4 h-[300px] w-[300px] rounded-full gradient-accent opacity-[0.06] blur-[100px]"
           />
-          {/* Grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
         </div>
 
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-32 text-center">
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-12 text-center">
           <motion.div
             initial="hidden" animate="visible" custom={0} variants={fadeUp}
             className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary mb-8 backdrop-blur-sm"
@@ -188,10 +222,69 @@ const Index = () => {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* Dashboard Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{ y: previewY }}
+          className="relative z-10 max-w-5xl mx-auto px-6 -mb-20"
+        >
+          <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-elevated bg-card">
+            <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/60">
+              <div className="flex gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-destructive/60" />
+                <div className="h-3 w-3 rounded-full bg-warning/60" />
+                <div className="h-3 w-3 rounded-full bg-success/60" />
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="bg-background/80 rounded-lg px-4 py-1 text-xs text-muted-foreground font-mono">
+                  attendease.app/dashboard
+                </div>
+              </div>
+            </div>
+            <img
+              src={dashboardPreview}
+              alt="AttendEase Dashboard Preview showing attendance analytics, QR codes, and student management"
+              className="w-full"
+              loading="lazy"
+            />
+          </div>
+          {/* Glow under the preview */}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-16 gradient-primary opacity-[0.08] blur-[40px] rounded-full" />
+        </motion.div>
       </div>
 
+      {/* Trusted By */}
+      <section className="relative z-10 max-w-4xl mx-auto px-6 pt-32 pb-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-6">Trusted by leading institutions</p>
+          <div className="flex flex-wrap justify-center gap-x-10 gap-y-4">
+            {trustedBy.map((name, i) => (
+              <motion.span
+                key={name}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-lg font-display font-semibold text-muted-foreground/50"
+              >
+                {name}
+              </motion.span>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
       {/* Stats */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 -mt-16">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
         <motion.div
           initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}
           variants={stagger}
@@ -208,7 +301,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="text-3xl md:text-4xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                {s.value}
+                <AnimatedCounter value={s.value} suffix={s.suffix} />
               </div>
               <div className="text-sm text-muted-foreground mt-1">{s.label}</div>
             </motion.div>
@@ -242,7 +335,6 @@ const Index = () => {
               key={f.title} custom={i} variants={fadeUp}
               className="group relative rounded-2xl bg-card/60 backdrop-blur-sm p-8 border border-border/60 hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 overflow-hidden"
             >
-              {/* Hover glow */}
               <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${
                 f.color === 'primary' ? 'from-primary/5 to-transparent' :
                 f.color === 'secondary' ? 'from-secondary/5 to-transparent' :
@@ -284,7 +376,6 @@ const Index = () => {
             variants={stagger}
             className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-4"
           >
-            {/* Connecting line (desktop) */}
             <div className="hidden lg:block absolute top-12 left-[12%] right-[12%] h-px bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20" />
 
             {howItWorks.map((item, i) => (
@@ -314,27 +405,37 @@ const Index = () => {
             <Users className="h-4 w-4" /> Testimonials
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold mt-2">Loved by Educators</h2>
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-lg">
+            See what administrators, faculty, and students have to say about AttendEase.
+          </p>
         </motion.div>
 
         <motion.div
           initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}
           variants={stagger}
-          className="grid gap-6 md:grid-cols-3"
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name} custom={i} variants={fadeUp}
-              className="rounded-2xl bg-card/60 backdrop-blur-sm border border-border/60 p-8 hover:border-primary/20 transition-all duration-300"
+              className="rounded-2xl bg-card/60 backdrop-blur-sm border border-border/60 p-8 hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="flex gap-1 mb-4">
+              <div className="flex gap-1 mb-5">
                 {[...Array(5)].map((_, j) => (
                   <Star key={j} className="h-4 w-4 fill-warning text-warning" />
                 ))}
               </div>
               <p className="text-muted-foreground leading-relaxed mb-6 italic">"{t.text}"</p>
-              <div>
-                <div className="font-display font-semibold">{t.name}</div>
-                <div className="text-sm text-muted-foreground">{t.role}</div>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className={`${t.color} text-primary-foreground text-xs font-bold`}>
+                    {t.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-display font-semibold text-sm">{t.name}</div>
+                  <div className="text-xs text-muted-foreground">{t.role}</div>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -380,20 +481,66 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-              <GraduationCap className="h-4 w-4 text-primary-foreground" />
+      <footer className="border-t border-border/50 bg-card/30">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid gap-10 md:grid-cols-4">
+            {/* Brand */}
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary">
+                  <GraduationCap className="h-4.5 w-4.5 text-primary-foreground" />
+                </div>
+                <span className="font-display font-bold text-lg">AttendEase</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Smart attendance management for modern educational institutions.
+              </p>
             </div>
-            <span className="font-display font-bold">AttendEase</span>
+            {/* Product */}
+            <div>
+              <h4 className="font-display font-semibold text-sm mb-4 uppercase tracking-wider text-foreground/80">Product</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
+                <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a></li>
+                <li><a href="#testimonials" className="hover:text-foreground transition-colors">Testimonials</a></li>
+                <li><button onClick={() => navigate('/demo')} className="hover:text-foreground transition-colors">Live Demo</button></li>
+              </ul>
+            </div>
+            {/* Company */}
+            <div>
+              <h4 className="font-display font-semibold text-sm mb-4 uppercase tracking-wider text-foreground/80">Company</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li><span className="hover:text-foreground transition-colors cursor-pointer">About</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</span></li>
+                <li><span className="hover:text-foreground transition-colors cursor-pointer">Contact</span></li>
+              </ul>
+            </div>
+            {/* Get Started */}
+            <div>
+              <h4 className="font-display font-semibold text-sm mb-4 uppercase tracking-wider text-foreground/80">Get Started</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li><button onClick={() => navigate('/signup')} className="hover:text-foreground transition-colors">Sign Up</button></li>
+                <li><button onClick={() => navigate('/login')} className="hover:text-foreground transition-colors">Sign In</button></li>
+                <li><button onClick={() => navigate('/demo')} className="hover:text-foreground transition-colors">Try Demo</button></li>
+              </ul>
+            </div>
           </div>
-          <div className="flex gap-8 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
-            <a href="#testimonials" className="hover:text-foreground transition-colors">Testimonials</a>
+
+          <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} AttendEase. All rights reserved.</p>
+            <div className="flex gap-4">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                <Twitter className="h-4 w-4" />
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                <Github className="h-4 w-4" />
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                <Linkedin className="h-4 w-4" />
+              </span>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} AttendEase</p>
         </div>
       </footer>
     </div>
